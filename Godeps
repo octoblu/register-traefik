@@ -1,0 +1,6 @@
+github.com/codegangsta/cli
+github.com/coreos/go-semver
+github.com/fatih/color
+github.com/onsi/ginkgo/ginkgo
+github.com/onsi/gomega
+github.com/tj/go-debug
