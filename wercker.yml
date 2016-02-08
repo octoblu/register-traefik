@@ -50,18 +50,14 @@ build:
         name: copy binary
         code: cp register-traefik "$WERCKER_OUTPUT_DIR"
 
-    - script:
-      name: discover tag
-      code: |
-        GIT_TAG="$(git describe --tags --always)"
-        QUAY_TAG="${GIT_TAG:-$WERCKER_GIT_COMMIT}"
-
 deploy:
   box: golang
   steps:
    # Use the scratch step to build a container from scratch based on the files present
-  - setup-go-workspace:
-    package-dir: github.com/octoblu/register-traefik
+  - script:
+    name: discover tag
+    code: |
+      QUAY_TAG="v$(./register-traefik --version | awk '{print $3}')"
   - internal/docker-scratch-push:
       username: $QUAY_USERNAME
       password: $QUAY_PASSWORD
