@@ -70,17 +70,16 @@ func run(context *cli.Context) {
 }
 
 func loop(etcdURI, serverKey, uri string) {
-	var err error
-
 	if healthchecker.Healthy(fmt.Sprintf("%v/healthcheck", uri)) {
 		debug("healthy")
-		err = etcd.Set(etcdURI, serverKey, uri)
+		err := etcd.Set(etcdURI, serverKey, uri)
+		PanicIfError("etcdclient.Set", err)
 	} else {
 		debug("not healthy")
-		err = etcd.Del(etcdURI, serverKey)
+		err := etcd.Del(etcdURI, serverKey)
+		PanicIfError("etcdclient.Del", err)
 	}
 
-	PanicIfError("etcdclient.Set", err)
 	time.Sleep(5 * time.Second)
 }
 

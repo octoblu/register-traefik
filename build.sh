@@ -1,7 +1,7 @@
 #!/bin/bash
 
 APP_NAME=register-traefik
-TMP_DIR=/tmp/$APP_NAME
+TMP_DIR=$PWD/tmp
 IMAGE_NAME=local/$APP_NAME
 
 build() {
