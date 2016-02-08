@@ -57,7 +57,10 @@ deploy:
   - script:
     name: discover tag
     code: |
-      TAG="$(cd $WERCKER_SOURCE_DIR && git describe --tags --always)"
+      TAG="v$($WERCKER_OUTPUT_DIR/register-traefik --version | awk '{print $3}')"
+  - github-create-release:
+    token: $GITHUB_TOKEN
+    tag: $TAG
   - internal/docker-scratch-push:
       username: $QUAY_USERNAME
       password: $QUAY_PASSWORD
