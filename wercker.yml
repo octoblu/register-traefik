@@ -57,7 +57,7 @@ deploy:
   - script:
     name: discover tag
     code: |
-      TAG="v$($WERCKER_OUTPUT_DIR/register-traefik --version | awk '{print $3}')"
+      TAG="v$($WERCKER_ROOT/register-traefik --version | awk '{print $3}')"
   - github-create-release:
     token: $GITHUB_TOKEN
     tag: $TAG
