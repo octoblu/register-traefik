@@ -59,8 +59,8 @@ func run(context *cli.Context) {
 
 	for {
 		if sigTermReceived {
-			err := etcd.Del(etcdURI, serverKey)
-			PanicIfError("Could not remove key from etcd", err)
+			fmt.Println("Cleaning up server.")
+			onNotHealthy(etcdURI, serverKey)
 			fmt.Println("I'll be back.")
 			os.Exit(0)
 		}
@@ -71,16 +71,38 @@ func run(context *cli.Context) {
 
 func loop(etcdURI, serverKey, uri string) {
 	if healthchecker.Healthy(fmt.Sprintf("%v/healthcheck", uri)) {
-		debug("healthy")
-		err := etcd.Set(etcdURI, serverKey, uri)
-		PanicIfError("etcdclient.Set", err)
+		onHealthy(etcdURI, serverKey, uri)
 	} else {
-		debug("not healthy")
-		err := etcd.Del(etcdURI, serverKey)
-		PanicIfError("etcdclient.Del", err)
+		onNotHealthy(etcdURI, serverKey)
 	}
 
 	time.Sleep(5 * time.Second)
+}
+
+func onHealthy(etcdURI, serverKey, uri string) {
+	debug("onHealthy")
+	var err error
+
+	urlKey := fmt.Sprintf("%v/url", serverKey)
+	weightKey := fmt.Sprintf("%v/weight", serverKey)
+
+	err = etcd.Set(etcdURI, urlKey, uri)
+	PanicIfError("etcdclient.Set urlKey", err)
+	err = etcd.Set(etcdURI, weightKey, "10")
+	PanicIfError("etcdclient.Set weightKey", err)
+}
+
+func onNotHealthy(etcdURI, serverKey string) {
+	debug("onNotHealthy")
+	var err error
+
+	urlKey := fmt.Sprintf("%v/url", serverKey)
+	weightKey := fmt.Sprintf("%v/weight", serverKey)
+
+	err = etcd.Del(etcdURI, urlKey)
+	PanicIfError("etcdclient.Del urlKey", err)
+	err = etcd.Del(etcdURI, weightKey)
+	PanicIfError("etcdclient.Del weightKey", err)
 }
 
 func getOpts(context *cli.Context) (string, string, string) {
