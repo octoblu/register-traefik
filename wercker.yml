@@ -57,11 +57,11 @@ deploy:
   - script:
     name: discover tag
     code: |
-      QUAY_TAG="v$(./register-traefik --version | awk '{print $3}')"
+      TAG="$(cd $WERCKER_SOURCE_DIR && git describe --tags --always)"
   - internal/docker-scratch-push:
       username: $QUAY_USERNAME
       password: $QUAY_PASSWORD
       cmd: ./register-traefik
-      tag: $QUAY_TAG
+      tag: $TAG
       repository: quay.io/octoblu/register-traefik
       registry: https://quay.io
