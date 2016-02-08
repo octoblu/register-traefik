@@ -11,7 +11,7 @@ import (
 	"github.com/codegangsta/cli"
 	"github.com/coreos/go-semver/semver"
 	"github.com/fatih/color"
-	"github.com/octoblu/go-simple-etcd-client/etcdclient"
+	"github.com/octoblu/register-traefik/etcd"
 	"github.com/octoblu/register-traefik/healthchecker"
 	De "github.com/tj/go-debug"
 )
@@ -44,6 +44,8 @@ func main() {
 }
 
 func run(context *cli.Context) {
+	etcdURI, serverKey, uri := getOpts(context)
+
 	sigTerm := make(chan os.Signal)
 	signal.Notify(sigTerm, syscall.SIGTERM)
 
@@ -57,30 +59,29 @@ func run(context *cli.Context) {
 
 	for {
 		if sigTermReceived {
+			err := etcd.Del(etcdURI, serverKey)
+			PanicIfError("Could not remove key from etcd", err)
 			fmt.Println("I'll be back.")
 			os.Exit(0)
 		}
 
-		loop(context)
+		loop(etcdURI, serverKey, uri)
 	}
 }
 
-func loop(context *cli.Context) {
-	etcdURI, serverKey, uri := getOpts(context)
-
-	etcdClient, err := etcdclient.Dial(etcdURI)
-	PanicIfError("etcdclient.Dial", err)
+func loop(etcdURI, serverKey, uri string) {
+	var err error
 
 	if healthchecker.Healthy(fmt.Sprintf("%v/healthcheck", uri)) {
 		debug("healthy")
-		err = etcdClient.Set(serverKey, uri)
+		err = etcd.Set(etcdURI, serverKey, uri)
 	} else {
 		debug("not healthy")
-		err = etcdClient.Del(serverKey)
+		err = etcd.Del(etcdURI, serverKey)
 	}
 
 	PanicIfError("etcdclient.Set", err)
-	time.Sleep(10 * time.Second)
+	time.Sleep(5 * time.Second)
 }
 
 func getOpts(context *cli.Context) (string, string, string) {

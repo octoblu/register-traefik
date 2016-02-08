@@ -27,3 +27,5 @@ entrypoint/register-traefik
 _builds
 _projects
 _steps
+_temp
+_cache
