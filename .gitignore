@@ -24,3 +24,6 @@ _testmain.go
 *.prof
 register-traefik
 entrypoint/register-traefik
+_builds
+_projects
+_steps

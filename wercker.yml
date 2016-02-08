@@ -24,13 +24,14 @@ build:
   steps:
     # Sets the go workspace and places you package
     # at the right place in the workspace tree
-    - setup-go-workspace
+    - setup-go-workspace:
+      package-dir: github.com/octoblu/register-traefik
 
     # Gets the dependencies
     - script:
-        name: go get
+        name: gpm
         code: |
-          go get
+          curl -s https://raw.githubusercontent.com/pote/gpm/v1.4.0/bin/gpm | bash
 
     # Build the project
     - script:
@@ -43,3 +44,20 @@ build:
         name: go test
         code: |
           go test ./...
+
+    # Copy binary to a location that gets passed along to the deploy pipeline
+    - script:
+        name: copy binary
+        code: cp register-traefik "$WERCKER_OUTPUT_DIR"
+
+deploy:
+  box: golang
+  steps:
+   # Use the scratch step to build a container from scratch based on the files present
+  - internal/docker-scratch-push:
+      username: $QUAY_USERNAME
+      password: $QUAY_PASSWORD
+      cmd: ./register-traefik
+      tag: $WERCKER_GIT_COMMIT
+      repository: quay.io/octoblu/register-traefik
+      registry: https://quay.io
