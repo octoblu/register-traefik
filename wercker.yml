@@ -54,10 +54,15 @@ deploy:
   box: golang
   steps:
    # Use the scratch step to build a container from scratch based on the files present
+  - script:
+    name: discover tag
+    code: |
+      GIT_TAG="$(git describe --tags --always)"
+      QUAY_TAG="${GIT_TAG:-$WERCKER_GIT_COMMIT}"
   - internal/docker-scratch-push:
       username: $QUAY_USERNAME
       password: $QUAY_PASSWORD
       cmd: ./register-traefik
-      tag: $WERCKER_GIT_COMMIT
+      tag: $QUAY_TAG
       repository: quay.io/octoblu/register-traefik
       registry: https://quay.io
