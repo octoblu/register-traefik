@@ -87,9 +87,9 @@ func onHealthy(etcdURI, serverKey, uri string) {
 	weightKey := fmt.Sprintf("%v/weight", serverKey)
 
 	err = etcd.Set(etcdURI, urlKey, uri)
-	PanicIfError("etcdclient.Set urlKey", err)
+	FatalIfError("etcdclient.Set urlKey", err)
 	err = etcd.Set(etcdURI, weightKey, "10")
-	PanicIfError("etcdclient.Set weightKey", err)
+	FatalIfError("etcdclient.Set weightKey", err)
 }
 
 func onNotHealthy(etcdURI, serverKey string) {
@@ -100,9 +100,9 @@ func onNotHealthy(etcdURI, serverKey string) {
 	weightKey := fmt.Sprintf("%v/weight", serverKey)
 
 	err = etcd.Del(etcdURI, urlKey)
-	PanicIfError("etcdclient.Del urlKey", err)
+	FatalIfError("etcdclient.Del urlKey", err)
 	err = etcd.Del(etcdURI, weightKey)
-	PanicIfError("etcdclient.Del weightKey", err)
+	FatalIfError("etcdclient.Del weightKey", err)
 }
 
 func getOpts(context *cli.Context) (string, string, string) {
@@ -132,17 +132,17 @@ func version() string {
 	version, err := semver.NewVersion(VERSION)
 	if err != nil {
 		errorMessage := fmt.Sprintf("Error with version number: %v", VERSION)
-		log.Panicln(errorMessage, err.Error())
+		log.Fatalln(errorMessage, err.Error())
 	}
 
 	return version.String()
 }
 
-// PanicIfError prints error and dies if error is non nil
-func PanicIfError(msg string, err error) {
+// FatalIfError prints error and dies if error is non nil
+func FatalIfError(msg string, err error) {
 	if err == nil {
 		return
 	}
 
-	log.Panicf("ERROR(%v):\n\n%v", msg, err)
+	log.Fatalf("ERROR(%v):\n\n%v", msg, err)
 }
