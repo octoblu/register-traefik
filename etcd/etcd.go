@@ -2,7 +2,7 @@ package etcd
 
 import "github.com/octoblu/go-simple-etcd-client/etcdclient"
 
-// Del deletes an key from etcd
+// Del deletes a key from etcd
 func Del(uri, key string) error {
 	client, err := etcdclient.Dial(uri)
 	if err != nil {
@@ -10,6 +10,16 @@ func Del(uri, key string) error {
 	}
 
 	return client.Del(key)
+}
+
+// DelDir deletes directory from etcd
+func DelDir(uri, key string) error {
+	client, err := etcdclient.Dial(uri)
+	if err != nil {
+		return err
+	}
+
+	return client.DelDir(key)
 }
 
 // Set sets a key on etcd

@@ -114,15 +114,9 @@ func onHealthy(etcdURI, serverKey, uri string) {
 
 func onNotHealthy(etcdURI, serverKey string) {
 	debug("onNotHealthy")
-	var err error
 
-	urlKey := fmt.Sprintf("%v/url", serverKey)
-	weightKey := fmt.Sprintf("%v/weight", serverKey)
-
-	err = etcd.Del(etcdURI, urlKey)
-	FatalIfError("etcdclient.Del urlKey", err)
-	err = etcd.Del(etcdURI, weightKey)
-	FatalIfError("etcdclient.Del weightKey", err)
+	err := etcd.DelDir(etcdURI, serverKey)
+	FatalIfError("etcd.DelDir", err)
 }
 
 func getOpts(context *cli.Context) (string, string, string) {
