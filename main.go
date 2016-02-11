@@ -46,37 +46,57 @@ func main() {
 func run(context *cli.Context) {
 	etcdURI, serverKey, uri := getOpts(context)
 
+	control := make(chan bool)
+	go loop(etcdURI, serverKey, uri, control)
+	go iterate(control)
+
 	sigTerm := make(chan os.Signal)
 	signal.Notify(sigTerm, syscall.SIGTERM)
 
-	sigTermReceived := false
+	sigHup := make(chan os.Signal)
+	signal.Notify(sigHup, syscall.SIGHUP)
 
 	go func() {
-		<-sigTerm
-		fmt.Println("SIGTERM received, waiting to exit")
-		sigTermReceived = true
+		for {
+			<-sigHup
+			fmt.Println("SIGHUP received, deregistering")
+			control <- false
+			onNotHealthy(etcdURI, serverKey)
+			fmt.Println("deregistered, paused for 5 seconds")
+			time.Sleep(5 * time.Second)
+			go loop(etcdURI, serverKey, uri, control)
+		}
 	}()
 
-	for {
-		if sigTermReceived {
-			fmt.Println("Cleaning up server.")
-			onNotHealthy(etcdURI, serverKey)
-			fmt.Println("I'll be back.")
-			os.Exit(0)
-		}
+	<-sigTerm
+	fmt.Println("SIGTERM received, cleaning up")
+	control <- false
+	onNotHealthy(etcdURI, serverKey)
+	os.Exit(0)
+}
 
-		loop(etcdURI, serverKey, uri)
+func loop(etcdURI, serverKey, uri string, control <-chan bool) {
+	for {
+		if !<-control {
+			return
+		}
+		healthcheck(etcdURI, serverKey, uri)
 	}
 }
 
-func loop(etcdURI, serverKey, uri string) {
+func iterate(control chan<- bool) {
+	for {
+		control <- true
+		time.Sleep(5 * time.Second)
+	}
+}
+
+func healthcheck(etcdURI, serverKey, uri string) {
 	if healthchecker.Healthy(fmt.Sprintf("%v/healthcheck", uri)) {
 		onHealthy(etcdURI, serverKey, uri)
 	} else {
 		onNotHealthy(etcdURI, serverKey)
 	}
-
-	time.Sleep(5 * time.Second)
 }
 
 func onHealthy(etcdURI, serverKey, uri string) {
