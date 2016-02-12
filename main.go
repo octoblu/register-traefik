@@ -3,8 +3,10 @@ package main
 import (
 	"fmt"
 	"log"
+	"net/url"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -141,7 +143,24 @@ func getOpts(context *cli.Context) (string, string, string) {
 		os.Exit(1)
 	}
 
+	validateURI(uri)
+
 	return etcdURI, serverKey, uri
+}
+
+func validateURI(uriStr string) {
+	uri, err := url.Parse(uriStr)
+	FatalIfError(fmt.Sprintf("Failed to parse uri: %v", uriStr), err)
+
+	if uri.Scheme != "http" && uri.Scheme != "https" {
+		log.Fatalf("uri protocol must be one of http/https: %v\n", uriStr)
+	}
+
+	parts := strings.Split(uri.Host, ":")
+
+	if len(parts) != 2 || parts[1] == "" {
+		log.Fatalf("uri must contain a port: %v\n", uriStr)
+	}
 }
 
 func version() string {
