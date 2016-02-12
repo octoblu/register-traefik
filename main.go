@@ -110,6 +110,8 @@ func onHealthy(etcdURI, serverKey, uri string) {
 	FatalIfError("etcdclient.Set urlKey", err)
 	err = etcd.Set(etcdURI, weightKey, "10")
 	FatalIfError("etcdclient.Set weightKey", err)
+	err = etcd.UpdateDirWithTTL(etcdURI, serverKey, 10)
+	FatalIfError("etcdclient.UpdateDirWithTTL", err)
 }
 
 func onNotHealthy(etcdURI, serverKey string) {

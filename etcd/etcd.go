@@ -1,6 +1,10 @@
 package etcd
 
-import "github.com/octoblu/go-simple-etcd-client/etcdclient"
+import (
+	"time"
+
+	"github.com/octoblu/go-simple-etcd-client/etcdclient"
+)
 
 // Del deletes a key from etcd
 func Del(uri, key string) error {
@@ -30,4 +34,15 @@ func Set(uri, key, value string) error {
 	}
 
 	return client.Set(key, value)
+}
+
+// UpdateDirWithTTL updates the ttl on the dir
+func UpdateDirWithTTL(uri, key string, ttlSeconds int) error {
+	client, err := etcdclient.Dial(uri)
+	if err != nil {
+		return err
+	}
+
+	ttl := time.Duration(ttlSeconds) * time.Second
+	return client.UpdateDirWithTTL(key, ttl)
 }
