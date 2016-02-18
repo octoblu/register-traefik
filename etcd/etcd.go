@@ -26,11 +26,21 @@ func DelDir(uri, key string) error {
 	return client.DelDir(key)
 }
 
-// Set sets a key on etcd
+// Set sets a key on etcd, but only if its
+// different
 func Set(uri, key, value string) error {
 	client, err := etcdclient.Dial(uri)
 	if err != nil {
 		return err
+	}
+
+	oldValue, err := client.Get(key)
+	if err != nil {
+		return err
+	}
+
+	if oldValue == value {
+		return nil
 	}
 
 	return client.Set(key, value)
